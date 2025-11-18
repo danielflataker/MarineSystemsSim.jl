@@ -13,9 +13,9 @@ all heavy lifting in time integration and numerics to existing Julia packages.
 
 - **3-DOF Fossen model**  
   Classical surge–sway–yaw equations:
-  $$
-  \mathbf{M}\dot{\nu} + \mathbf{C}(\nu) \, \nu + \mathbf{D}(\nu) \, \nu = \tau
-  $$
+
+  $$ \mathbf{M}\dot{\nu} + \mathbf{C}(\nu) \\, \nu + \mathbf{D}(\nu) \\, \nu = \tau $$
+
   with rigid-body + added mass, Coriolis/centripetal, and linear + quadratic damping.
 
 - **Lightweight, “MSS-inspired” core**  
