@@ -28,15 +28,15 @@ surface vessel models in Julia. The goals are:
 **Kinematics and frames**
 
 * [`rotation`](@ref): body → Earth rotation matrix in the horizontal plane.
-* [`kinematics`](@ref): computes (\dot{\eta}) from (\eta) and (\nu).
+* [`kinematics`](@ref): computes $\dot{\eta}$ from $\eta$ and $\nu$.
 
 **Core dynamics**
 
-* [`mass_matrix`](@ref): builds (\mathbf{M} = \mathbf{M}_{RB} + \mathbf{M}_A).
-* [`build_cached_vessel`](@ref): caches (\mathbf{M}), (\mathbf{M}^{-1}) and (\mathbf{D}_\text{lin}).
-* [`damping_forces`](@ref): evaluates (\mathbf{D}(\nu),\nu).
-* [`coriolis_forces`](@ref): evaluates (\mathbf{C}(\nu),\nu).
-* [`body_dynamics`](@ref): computes (\dot{\nu}).
+* [`mass_matrix`](@ref): builds $\mathbf{M} = \mathbf{M}_{RB} + \mathbf{M}_A$.
+* [`build_cached_vessel`](@ref): caches $\mathbf{M}$, $\mathbf{M}^{-1}$ and $\mathbf{D}_\text{lin}$.
+* [`damping_forces`](@ref): evaluates $\mathbf{D}(\nu) \, \nu$.
+* [`coriolis_forces`](@ref): evaluates $\mathbf{C}(\nu) \, \nu$.
+* [`body_dynamics`](@ref): computes $\dot{\nu}$.
 * [`vessel_dynamics`](@ref): computes the full 6-state derivative.
 
 See:

@@ -109,7 +109,7 @@ and is constructed by [`mass_matrix`](@ref) and cached in
 The Coriolis/centripetal contribution is modeled as
 
 ```math
-\mathbf{C}(\boldsymbol{\nu}) \boldsymbol{\nu}
+\mathbf{C}(\boldsymbol{\nu}) \, \boldsymbol{\nu}
 =
 \bigl(
 \mathbf{C}_{RB}(\boldsymbol{\nu})
@@ -122,16 +122,16 @@ with rigid-body and added-mass parts following Fossen’s 3-DOF expressions.
 Both matrices are constructed internally from the parameters and satisfy
 
 ```math
-\boldsymbol{\nu}^T \mathbf{C}_{RB}(\boldsymbol{\nu}) \boldsymbol{\nu}
+\boldsymbol{\nu}^T \mathbf{C}_{RB}(\boldsymbol{\nu}) \, \boldsymbol{\nu}
 = 0,
 \qquad
-\boldsymbol{\nu}^T \mathbf{C}_A(\boldsymbol{\nu}) \boldsymbol{\nu}
+\boldsymbol{\nu}^T \mathbf{C}_A(\boldsymbol{\nu}) \, \boldsymbol{\nu}
 = 0,
 ```
 
 so that they do not create or dissipate energy.
 
-The product (\mathbf{C}(\boldsymbol{\nu}) \boldsymbol{\nu}) is provided by [`coriolis_forces`](@ref).
+The product $\mathbf{C}(\boldsymbol{\nu}) \, \boldsymbol{\nu}$ is provided by [`coriolis_forces`](@ref).
 
 ---
 
@@ -141,11 +141,11 @@ Hydrodynamic damping is represented as a linear part plus a diagonal
 quadratic part:
 
 ```math
-\mathbf{D}(\boldsymbol{\nu}) \boldsymbol{\nu}
+\mathbf{D}(\boldsymbol{\nu}) \, \boldsymbol{\nu}
 =
 \mathbf{D}_{\text{lin}} \boldsymbol{\nu}
 +
-\mathbf{D}_{\text{n}}(\boldsymbol{\nu}) \boldsymbol{\nu}.
+\mathbf{D}_{\text{n}}(\boldsymbol{\nu}) \, \boldsymbol{\nu}.
 ```
 
 ### Linear damping
@@ -160,7 +160,7 @@ equations:
 ```
 
 When [`hydroparams_fossen3dof`](@ref) is used, (\mathbf{D}_{\text{lin}})
-is constructed from the Fossen derivatives (X_u, X_v, X_r, \dots) as
+is constructed from the Fossen derivatives $X_u, X_v, X_r, \dots$ as
 
 ```math
 \mathbf{D}_{\text{lin}} =
@@ -175,8 +175,8 @@ N_u & N_v & N_r
 
 The quadratic damping coefficients are stored in
 [`QuadraticDamping3DOF`](@ref), holding the entries
-(X_{uu}, Y_{vv}, N_{rr}). For a given velocity
-(\boldsymbol{\nu} = [u, v, r]^T), the diagonal quadratic matrix is
+$X_{uu}, Y_{vv}, N_{rr}$. For a given velocity
+$\boldsymbol{\nu} = [u, v, r]^T$, the diagonal quadratic matrix is
 
 ```math
 \mathbf{D}_{\text{n}}(\boldsymbol{\nu})
@@ -195,7 +195,7 @@ so that the total damping becomes
 \mathbf{D}_{\text{lin}} + \mathbf{D}_{\text{n}}(\boldsymbol{\nu}).
 ```
 
-The product (\mathbf{D}(\boldsymbol{\nu}) \boldsymbol{\nu}) is computed
+The product $\mathbf{D}(\boldsymbol{\nu}) \, \boldsymbol{\nu}$ is computed
 by [`damping_forces`](@ref).
 
 ---
@@ -208,15 +208,15 @@ The 3-DOF kinematics in the horizontal plane are
 \dot{\boldsymbol{\eta}} = \mathbf{R}(\psi)\, \boldsymbol{\nu},
 ```
 
-where (\mathbf{R}(\psi)) is the rotation from body-fixed to Earth-fixed
+where $\mathbf{R}(\psi)$ is the rotation from body-fixed to Earth-fixed
 frame.
 
-[`rotation`](@ref) returns the \(3 \times 3\) rotation matrix
-\(\mathbf{R}(\psi)\), and [`kinematics`](@ref) computes
-\(\dot{\boldsymbol{\eta}}\) for a given pose and velocity.
+[`rotation`](@ref) returns the $3 \times 3$ rotation matrix
+$\mathbf{R}(\psi)$, and [`kinematics`](@ref) computes
+$\dot{\boldsymbol{\eta}}$ for a given pose and velocity.
 
-* `rotation(ψ)` returns the `3×3` rotation matrix (\mathbf{R}(\psi)),
-* `kinematics(η, ν)` computes (\dot{\boldsymbol{\eta}}) for a given
+* `rotation(ψ)` returns the `3×3` rotation matrix $\mathbf{R}(\psi)$,
+* `kinematics(η, ν)` computes $\dot{\boldsymbol{\eta}}$ for a given
   pose and velocity.
 
 ---
@@ -246,7 +246,7 @@ where
 
 The body dynamics are computed by [`body_dynamics`](@ref), and the full
 state derivative by [`vessel_dynamics`](@ref), which splits the state into
-\(\eta\) and \(\nu\), applies the kinematics and dynamics, and returns the
+$\eta$ and $\nu$, applies the kinematics and dynamics, and returns the
 combined 6-element derivative.
 
 * [`body_dynamics`](@ref) computes (\dot{\boldsymbol{\nu}}),
