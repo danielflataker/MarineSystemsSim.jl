@@ -199,5 +199,5 @@ will be added here. In the meantime, see:
 
 ## License
 
-MarineSystemsSim.jl is intended to be released under a permissive open-source
-license (e.g. MIT). See the `LICENSE` file in the repository once added.
+MarineSystemsSim.jl is licensed under the MIT License.  
+See the [LICENSE](LICENSE) file in this repository for details.
