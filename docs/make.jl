@@ -1,19 +1,9 @@
 # docs/make.jl
 
-using Pkg
-
-# 1. Use the docs environment
-Pkg.activate(@__DIR__)
-
-# 2. Make sure the docs env "sees" the local package in the parent folder
-Pkg.develop(path = "..")
-
-# 3. Install any missing deps declared in docs/Project.toml
-Pkg.instantiate()
-
-# 4. Now we can load Documenter and the package
 using Documenter
 using MarineSystemsSim
+
+DocMeta.setdocmeta!(MarineSystemsSim, :DocTestSetup, :(using MarineSystemsSim); recursive = true)
 
 makedocs(
     sitename = "MarineSystemsSim.jl",
@@ -21,8 +11,8 @@ makedocs(
     remotes  = nothing,
     format   = Documenter.HTML(
         prettyurls = false,
-        repolink   = nothing,
-        edit_link  = nothing,
+        repolink   = "https://github.com/danielflataker/MarineSystemsSim.jl",
+        edit_link  = "main",
     ),
     pages    = [
         "Home"            => "index.md",
