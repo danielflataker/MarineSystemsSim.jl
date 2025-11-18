@@ -9,6 +9,11 @@ all heavy lifting in time integration and numerics to existing Julia packages.
 
 > Note: This package is under active development and is not yet registered in the Julia General registry. Expect breaking changes.
 
+## Documentation
+
+The latest development docs are available at  
+https://danielflataker.github.io/MarineSystemsSim.jl/dev/
+
 ## Features
 
 - **3-DOF Fossen model**  
