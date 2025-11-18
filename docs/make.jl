@@ -10,7 +10,7 @@ makedocs(
     modules  = [MarineSystemsSim],
     remotes  = nothing,
     format   = Documenter.HTML(
-        prettyurls = false,
+        prettyurls = true,
         repolink   = "https://github.com/danielflataker/MarineSystemsSim.jl",
         edit_link  = "main",
     ),
