@@ -7,8 +7,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   test:
+    name: Tests (supported Julia)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,24 +22,49 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
 
   test-experimental:
+    name: Tests (experimental Julia)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        julia-version: ['1.8', '1.9', 'nightly']
+        julia-version: ['nightly']
     continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+
+  test-lower-bounds:
+    name: Test lower compat bounds
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version: ['1.10']  # test lower bounds on the minimum supported Julia
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v2
+      # Use the lowest version we claim to support for all [deps]
+      - uses: julia-actions/julia-downgrade-compat@v2
+        with:
+          # don't try to downgrade stdlibs
+          skip: Pkg, TOML
+          mode: deps      # only minimize your direct deps
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
