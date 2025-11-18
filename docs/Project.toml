@@ -1,0 +1,5 @@
+[deps]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+MarineSystemsSim = "81223ba3-ea73-41df-8355-662df8ce4c82"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"

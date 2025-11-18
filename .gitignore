@@ -1,0 +1,17 @@
+# Julia coverage / compiled artifacts
+*.jl.cov
+*.jl.*.cov
+*.ji
+*.mem
+
+# Editor settings
+.vscode/
+.idea/
+
+# Documenter build output
+docs/build/
+docs/site/
+
+# Optional: ignore Manifest in a package repo
+Manifest.toml
+docs/Manifest.toml
