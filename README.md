@@ -7,6 +7,8 @@ from Thor I. Fossen’s Marine Systems Simulator (MSS) to the Julia ecosystem.
 It focuses on clean equations of motion and efficient numerics, and delegates
 all heavy lifting in time integration and numerics to existing Julia packages.
 
+> Note: This package is under active development and is not yet registered in the Julia General registry. Expect breaking changes.
+
 ## Features
 
 - **3-DOF Fossen model**  
@@ -65,17 +67,39 @@ minimal core you can script around, not a full simulation environment.
 
 ## Installation
 
-From the Julia REPL:
+This package is **not yet registered**. If you want to try it out, you can still install it locally.
+
+### Option 1: Using Julia’s package manager (recommended)
+
+In Julia, press `]` to enter the Pkg REPL and run:
 
 ```julia
-julia> ] add MarineSystemsSim
+pkg> develop https://github.com/danielflataker/MarineSystemsSim.jl
 ````
 
-You will usually also want an ODE solver and basic dependencies, e.g.:
+This clones the repo into your `.julia/dev` folder and makes it available as a package:
 
 ```julia
-julia> ] add OrdinaryDiffEq StaticArrays
+julia> using MarineSystemsSim
 ```
+
+### Option 2: Download ZIP manually
+
+1. On GitHub, click **Code → Download ZIP**.
+2. Extract the ZIP somewhere on your computer (for example `C:\Users\you\Projects\MarineSystemsSim.jl` or `~/Projects/MarineSystemsSim.jl`).
+3. In Julia, enter the Pkg REPL (`]`) and run:
+
+```julia
+pkg> develop /full/path/to/MarineSystemsSim.jl
+```
+
+Now you can use the package as normal:
+
+```julia
+julia> using MarineSystemsSim
+```
+
+> Note: The package is under active development; APIs may change without notice.
 
 ## Quick start
 
