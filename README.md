@@ -11,7 +11,7 @@ all heavy lifting in time integration and numerics to existing Julia packages.
 
 ## Documentation
 
-The latest development docs are available at  
+The latest docs for the latest commit in main branch (experimental) is available at  
 https://danielflataker.github.io/MarineSystemsSim.jl/dev/
 
 ## Features
