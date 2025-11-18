@@ -32,3 +32,11 @@ makedocs(
     ],
     checkdocs = :exports,  # only require docs for exported names
 )
+
+deploydocs(
+    repo      = "github.com/danielflataker/MarineSystemsSim.jl.git",
+    devbranch = "main",
+    versions  = [
+        "dev" => "main",   # for now, only dev docs until we start tagging
+    ],
+)
