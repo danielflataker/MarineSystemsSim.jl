@@ -21,16 +21,16 @@ using DifferentialEquations
         # Linear damping derivatives (Xu, Yv, Yr, Nv, Nr)
         0.0, 0.0, 0.0, 0.0, 0.0,
         # Quadratic damping derivatives (Xuu, Yvv, Nrr)
-        0.0, 0.0, 0.0
+        0.0, 0.0, 0.0,
     )
 
     params = VesselParams3DOF(rb, hydro)
-    model  = build_cached_vessel(params)
+    model  = Vessel3DOF(params)
 
     # --- 2. Constant thrust in surge ---
 
-    τu = 1.0                    # [N]
-    τ  = @SVector [τu, 0.0, 0.0]
+    τu = 1.0                     # [N]
+    τs = @SVector [τu, 0.0, 0.0] # constant generalized forces
 
     # --- 3. Initial state ---
 
@@ -40,23 +40,19 @@ using DifferentialEquations
     # ODEProblem expects a standard Vector, so we copy once
     X0 = collect(X0_s)
 
-    # --- 4. RHS wrapper using vessel_dynamics ---
+    # --- 4. RHS using the generic vessel_rhs! interface ---
 
-    function rhs!(dX, X, p, t)
-        model, τ = p
-        Xs  = SVector{6}(X)
-        dXs = vessel_dynamics(Xs, model, τ)
-        @inbounds for i in 1:6
-            dX[i] = dXs[i]
-        end
-        return nothing
+    τfun(Xs, t) = τs  # constant in time and state
+
+    function rhs!(dX, X, model, t)
+        vessel_rhs!(dX, X, model, τfun, t)
     end
 
-    p     = (model, τ)
+    p     = model
     tspan = (0.0, 10.0)
 
     prob = ODEProblem(rhs!, X0, tspan, p)
-    sol  = solve(prob, Tsit5(); reltol=1e-10, abstol=1e-10)
+    sol  = solve(prob, Tsit5(); reltol = 1e-10, abstol = 1e-10)
 
     # --- 5. Compare analytic solution with numerical solution ---
 
@@ -71,12 +67,12 @@ using DifferentialEquations
     a = τu / m          # expected constant surge acceleration
 
     # u(t) = a t
-    @test isapprox(u_end, a * t_end; rtol=1e-3, atol=1e-6)
+    @test isapprox(u_end, a * t_end; rtol = 1e-3, atol = 1e-6)
 
     # x(t) = 0.5 a t^2
-    @test isapprox(x_end, 0.5 * a * t_end^2; rtol=1e-3, atol=1e-6)
+    @test isapprox(x_end, 0.5 * a * t_end^2; rtol = 1e-3, atol = 1e-6)
 
     # v(t), r(t) should remain ~0
-    @test isapprox(v_end, 0.0; atol=1e-6)
-    @test isapprox(r_end, 0.0; atol=1e-6)
+    @test isapprox(v_end, 0.0; atol = 1e-6)
+    @test isapprox(r_end, 0.0; atol = 1e-6)
 end

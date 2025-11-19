@@ -18,7 +18,7 @@ using StaticArrays
     )
 
     params = VesselParams3DOF(rb, hydro)
-    model  = build_cached_vessel(params)
+    model  = Vessel3DOF(params)
 
     # State X = [x, y, ψ, u, v, r]
     X  = @SVector [0.0, 0.0, 0.0,   1.0, 0.0, 0.0]  # ψ = 0, pure surge

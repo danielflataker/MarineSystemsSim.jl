@@ -5,21 +5,21 @@ using StaticArrays
 @testset "3DOF body dynamics: rest equilibrium" begin
     rb = RigidBody3DOF(10.0, 20.0, 0.0)
 
-    # Fysisk fornuftige Fossen-derivater:
-    # - ingen added mass
-    # - negativ lineær damping (Xu, Yv, Nr) -> D_lin med positiv diag
-    # - negativ kvadratisk dampingderivater
+    # Physically reasonable Fossen-style derivatives:
+    # - no added mass
+    # - negative linear damping (Xu, Yv, Nr) → D_lin with positive diagonal
+    # - negative quadratic damping derivatives
     h = hydroparams_fossen3dof(
         # Added mass derivatives (none)
         0.0, 0.0, 0.0, 0.0,          # Xudot, Yvdot, Yrdot, Nrdot
-        # Linear damping derivatives (Fossen-style, typisk ≤ 0)
+        # Linear damping derivatives (Fossen-style, typically ≤ 0)
         -1.0, -1.0, 0.0, 0.0, -1.0, # Xu,   Yv,   Yr,  Nv,  Nr
-        # Quadratic damping derivatives (Fossen-style, typisk ≤ 0)
+        # Quadratic damping derivatives (Fossen-style, typically ≤ 0)
         -0.1, -0.1, -0.1            # Xuu,  Yvv,  Nrr
     )
 
     params = VesselParams3DOF(rb, h)
-    model  = build_cached_vessel(params)
+    model  = Vessel3DOF(params)  # uses cached M and Minv
 
     ν    = @SVector [0.0, 0.0, 0.0]
     τ    = @SVector [0.0, 0.0, 0.0]
@@ -33,7 +33,7 @@ end
     m, Iz, xG = 10.0, 20.0, 0.0
     rb = RigidBody3DOF(m, Iz, xG)
 
-    # Ingen added mass, ingen damping
+    # No added mass, no damping
     h = hydroparams_fossen3dof(
         # Added mass
         0.0, 0.0, 0.0, 0.0,  # Xudot, Yvdot, Yrdot, Nrdot
@@ -44,10 +44,10 @@ end
     )
 
     params = VesselParams3DOF(rb, h)
-    model  = build_cached_vessel(params)
+    model  = Vessel3DOF(params)
 
     ν    = @SVector [0.0, 0.0, 0.0]
-    τ    = @SVector [1.0, 0.0, 0.0]   # 1 N i surge
+    τ    = @SVector [1.0, 0.0, 0.0]   # 1 N in surge
 
     νdot = body_dynamics(ν, model, τ)
 

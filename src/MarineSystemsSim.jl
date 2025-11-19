@@ -1,3 +1,5 @@
+# src/MarineSystemsSim.jl
+
 __precompile__(false)
 
 module MarineSystemsSim
@@ -7,22 +9,30 @@ module MarineSystemsSim
     using Unitful
     using LinearAlgebra: cond, dot
 
+    include("core.jl")
     include("params_3dof.jl")
     include("frames_3dof.jl")
-    include("assemble_3dof.jl")
-    include("dynamics_3dof.jl")
+    include("matrices_3dof.jl")
+    include("model_3dof.jl")
     include("checks.jl")
 
     export
+        # types
         RigidBody3DOF,
         HydroParams3DOF,
         VesselParams3DOF,
+        Vessel3DOF,
+        # core API
         kinematics,
-        CachedVessel3DOF,
-        build_cached_vessel,
         mass_matrix,
         damping_forces,
         body_dynamics,
         vessel_dynamics,
-        hydroparams_fossen3dof
-end # module MarineSystemsSim
+        vessel_rhs!,
+        dofs,
+        # 3DOF Fossen helpers
+        hydroparams_fossen3dof,
+        vesselparams_fossen3dof,
+        build_vessel3dof_fossen
+
+end

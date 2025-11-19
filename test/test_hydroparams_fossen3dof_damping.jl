@@ -2,11 +2,10 @@
 
 using Test
 using MarineSystemsSim
-using StaticArrays
 
 @testset "3DOF linear damping matrix assembly" begin
     # Distinct Fossen-style linear damping derivatives (typically ≤ 0 for drag)
-    # so we can see if anything is shuffled.
+    # so we can see if any entries are misplaced.
     Xu  = -1.0
     Xv  = -2.0
     Xr  = -3.0

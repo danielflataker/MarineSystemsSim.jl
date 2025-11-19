@@ -23,7 +23,7 @@ using StaticArrays
         # Linear damping derivatives (Xu, Yv, Yr, Nv, Nr) – all zero in this test
         0.0,   0.0,  0.0,  0.0,  0.0,
         # Quadratic damping derivatives (Xuu, Yvv, Nrr)
-        0.0,   0.0,  0.0
+        0.0,   0.0,  0.0,
     )
 
     params = VesselParams3DOF(rb, hydro)

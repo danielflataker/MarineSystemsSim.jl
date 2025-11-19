@@ -1,4 +1,4 @@
-# src/assemble_3dof.jl
+# src/matrices_3dof.jl
 
 """
 $(TYPEDSIGNATURES)
@@ -31,6 +31,7 @@ the body-fixed frame:
     ]
 end
 
+
 """
 $(TYPEDSIGNATURES)
 
@@ -42,6 +43,29 @@ constructed via [`hydroparams_fossen3dof`](@ref) it has the standard
 Fossen 3-DOF structure.
 """
 @inline _mass_added(h::HydroParams3DOF{T}) where {T} = h.M_A
+
+
+"""
+$(TYPEDSIGNATURES)
+
+Build the ``3\\times 3`` rigid-body + added-mass inertia matrix in surge–sway–yaw:
+
+```math
+\\mathbf{M} = \\mathbf{M}_{RB} + \\mathbf{M}_A
+```
+
+where ``M_{RB}`` is built from `RigidBody3DOF` and ``M_A`` from `HydroParams3DOF`.
+"""
+function mass_matrix(params::VesselParams3DOF{T}) where {T<:Real}
+    M = _mass_rb(params.rb) + _mass_added(params.hydro)
+
+    if cond(M) > 1e12
+        @warn "Mass matrix is near singular (cond(M) = $(cond(M)))."
+    end
+
+    return M
+end
+
 
 """
 $(TYPEDSIGNATURES)
@@ -211,7 +235,7 @@ entries in `C_A` will no longer match Fossen's added-mass derivatives.
     Xudot = -M_A[1,1]
     Yvdot = -M_A[2,2]
     Yrdot = -M_A[2,3]
-    # Nrdot = -M_A[3,3]  # brukes ikke i 3-DOF C_A
+    # Nrdot = -M_A[3,3]  # not used in 3-DOF C_A
 
     return @SMatrix [
         z                 z           Yvdot*v + Yrdot*r;

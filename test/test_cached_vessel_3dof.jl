@@ -1,10 +1,8 @@
-# test/test_cached_vessel_3dof.jl
-
 using Test
 using MarineSystemsSim
 using LinearAlgebra   # for I
 
-@testset "CachedVessel3DOF assembly" begin
+@testset "Vessel3DOF assembly" begin
     # Simple, but non-trivial rigid-body parameters
     rb = RigidBody3DOF(10.0, 25.0, 1.5)
 
@@ -14,11 +12,11 @@ using LinearAlgebra   # for I
     # - Quadratic damping derivatives: typically ≤ 0 (drag)
     hydro = hydroparams_fossen3dof(
         # Added mass
-        1.0, 2.0, 0.5, 0.7,      # Xudot, Yvdot, Yrdot, Nrdot
+        1.0, 2.0, 0.5, 0.7,                # Xudot, Yvdot, Yrdot, Nrdot
         # Linear damping
-        -1.0, -0.5, -0.2, -0.3, -0.7,  # Xu, Yv, Yr, Nv, Nr
+        -1.0, -0.5, -0.2, -0.3, -0.7,      # Xu, Yv, Yr, Nv, Nr
         # Quadratic damping
-        -0.1, -0.2, -0.3;        # Xuu, Yvv, Nrr
+        -0.1, -0.2, -0.3;                  # Xuu, Yvv, Nrr
         # Optional cross-derivatives
         Xv = -0.4,
         Xr = -0.6,
@@ -27,9 +25,9 @@ using LinearAlgebra   # for I
     )
 
     params = VesselParams3DOF(rb, hydro)
-    model  = build_cached_vessel(params)
+    model  = Vessel3DOF(params)
 
-    # 1) M must match the standalone mass_matrix
+    # 1) M must match the standalone mass_matrix(params)
     @test model.M == mass_matrix(params)
 
     # 2) Minv should be a true inverse (within numerical tolerance)

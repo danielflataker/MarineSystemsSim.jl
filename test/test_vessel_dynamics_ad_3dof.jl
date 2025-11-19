@@ -5,7 +5,7 @@ using MarineSystemsSim
 using StaticArrays
 using ForwardDiff
 
-# Helper to build a reasonable model (no zero matrices, physically sound signs)
+# Helper to build a reasonable 3-DOF vessel model (non-singular, physically sound signs)
 function _make_model_for_ad()
     rb = RigidBody3DOF(10.0, 25.0, 1.5)
 
@@ -28,7 +28,7 @@ function _make_model_for_ad()
     )
 
     params = VesselParams3DOF(rb, hydro)
-    return build_cached_vessel(params)
+    return Vessel3DOF(params)
 end
 
 @testset "3DOF vessel_dynamics works with Dual numbers" begin
@@ -40,8 +40,7 @@ end
 
     τ0 = @SVector [0.1, 0.0, 0.05]
 
-    # Important: do NOT type-annotate the argument as Vector{Float64},
-    # ForwardDiff will pass Vector{Dual} here.
+    # Do not type-annotate X_vec; ForwardDiff will pass Vector{Dual} here.
     f(X_vec) = begin
         X = SVector{6}(X_vec)             # works for Float64 and Dual
         vessel_dynamics(X, model, τ0)     # returns SVector{6, S}

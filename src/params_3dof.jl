@@ -43,10 +43,6 @@ struct RigidBody3DOF{T<:Real}
     end
 end
 
-# Generic numeric convenience constructor
-# Disabled in order to force same types for efficiency etc.
-# RigidBody3DOF(m::Real, Iz::Real, xG::Real) =
-#     RigidBody3DOF(promote(m, Iz, xG)...)
 
 # Unitful constructor for user-friendly API
 RigidBody3DOF(
@@ -128,6 +124,20 @@ struct HydroParams3DOF{T<:Real}
     D_lin :: SMatrix{3,3,T}              # linear damping matrix
     D_quad:: QuadraticDamping3DOF{T}     # quadratic coeffs
 end
+
+
+"""
+$(TYPEDEF)
+
+Collects all 3-DOF vessel parameters: rigid-body and hydrodynamics.
+
+This is the main input data structure for the rest of the 3-DOF MSS.
+"""
+struct VesselParams3DOF{T<:Real}
+    rb    :: RigidBody3DOF{T}
+    hydro :: HydroParams3DOF{T}
+end
+
 
 
 """
@@ -232,44 +242,4 @@ function vesselparams_fossen3dof(
     )
 
     return VesselParams3DOF(rb, hydro)
-end
-
-
-"""
-$(TYPEDSIGNATURES)
-
-Convenience constructor for a cached 3-DOF vessel model from
-Fossen-style rigid-body and manoeuvring derivatives.
-
-Wraps [`vesselparams_fossen3dof`](@ref) and
-[`build_cached_vessel`](@ref) into a single call.
-
-All derivatives are given with Fossen's sign convention; no sign flips
-are applied.
-
-Keyword:
-- `check_physical::Bool = true`: run heuristic checks and emit
-  warnings if the resulting model looks suspicious.
-"""
-function build_cached_vessel_fossen3dof(
-    args...;
-    check_physical::Bool = true,
-    kwargs...
-)
-    params = vesselparams_fossen3dof(args...; kwargs...)
-    return build_cached_vessel(params; check_physical=check_physical)
-end
-
-
-
-"""
-$(TYPEDEF)
-
-Collects all 3-DOF vessel parameters: rigid-body and hydrodynamics.
-
-This is the main input data structure for the rest of the 3-DOF MSS.
-"""
-struct VesselParams3DOF{T<:Real}
-    rb    :: RigidBody3DOF{T}
-    hydro :: HydroParams3DOF{T}
 end

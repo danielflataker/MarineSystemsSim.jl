@@ -5,7 +5,7 @@ using MarineSystemsSim
 using StaticArrays
 using Logging
 
-# Simple logger that collects all log messages at warn level or above
+# Logger that collects all log messages at warn level or above
 mutable struct CollectingLogger <: AbstractLogger
     records::Vector{NamedTuple}
 end
@@ -46,11 +46,11 @@ Logging.catch_exceptions(::CollectingLogger) = false
         # Linear damping derivatives (Xu, Yv, Yr, Nv, Nr)
         -1.0, -1.0, 0.0, 0.0, -1.0,
         # Quadratic damping derivatives (Xuu, Yvv, Nrr)
-        -0.1, -0.2, -0.3
+        -0.1, -0.2, -0.3,
     )
 
     params_ok = VesselParams3DOF(rb_ok, hydro_ok)
-    model_ok  = build_cached_vessel(params_ok; check_physical = false)
+    model_ok  = Vessel3DOF(params_ok; check_physical = false)
 
     logger_ok = CollectingLogger(NamedTuple[])
     with_logger(logger_ok) do
@@ -74,11 +74,11 @@ Logging.catch_exceptions(::CollectingLogger) = false
         # Linear damping derivatives (Xu, Yv, Yr, Nv, Nr)
         1.0, 1.0, 0.0, 0.0, 1.0,
         # Quadratic damping derivatives (Xuu, Yvv, Nrr)
-        0.1, 0.2, 0.3
+        0.1, 0.2, 0.3,
     )
 
     params_bad = VesselParams3DOF(rb_bad, hydro_bad)
-    model_bad  = build_cached_vessel(params_bad; check_physical = false)
+    model_bad  = Vessel3DOF(params_bad; check_physical = false)
 
     logger_bad = CollectingLogger(NamedTuple[])
     with_logger(logger_bad) do

@@ -1,9 +1,10 @@
-# checks.jl
+# src/checks.jl
+# Heuristic physical sanity checks for 3DOF models.
 
 """
 $(TYPEDSIGNATURES)
 
-Emit warnings if the hydrodynamic parameters in `model` look suspicious.
+Emit warnings if the hydrodynamic parameters in a 3-DOF vessel model look suspicious.
 
 This helper performs three classes of checks:
 
@@ -30,7 +31,7 @@ These checks are heuristic and do not enforce any hard constraints,
 but they can help catch sign mistakes and obviously unphysical
 parameter sets early.
 """
-function _warn_if_suspicious(model::CachedVessel3DOF{T}) where {T<:Real}
+function _warn_if_suspicious(model::Vessel3DOF{T}) where {T<:Real}
     h = model.params.hydro
 
     # === Linear damping: diagonal entries should usually be >= 0 ===
