@@ -4,6 +4,8 @@ using Test
 using MarineSystemsSim
 using StaticArrays
 
+import MarineSystemsSim: AbstractVesselModel
+
 @testset "3DOF parameter and model types" begin
     # Use Float32 to verify that the element type propagates through all structs.
     m   = 10.0f0

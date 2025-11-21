@@ -1,6 +1,10 @@
+# test/test_coriolis_3dof.jl
+
 using Test
 using MarineSystemsSim
 using StaticArrays
+
+import MarineSystemsSim: coriolis_forces
 
 # Helper to build a 3DOF model and a test velocity ν
 function _test_coriolis_setup()
