@@ -280,7 +280,7 @@ julia> hydro = hydroparams_fossen3dof(
 
 julia> params = VesselParams3DOF(rb, hydro);
 
-julia> model = build_cached_vessel(params);
+julia> model = Vessel3DOF(params);
 
 julia> ν0 = @SVector [1.0, 0.5, -0.2];
 
