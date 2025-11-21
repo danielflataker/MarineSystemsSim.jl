@@ -23,21 +23,28 @@ surface vessel models in Julia. The goals are:
 * [`QuadraticDamping3DOF`](@ref): quadratic manoeuvring derivatives.
 * [`HydroParams3DOF`](@ref): added mass and damping matrices.
 * [`VesselParams3DOF`](@ref): rigid body + hydrodynamics in one bundle.
-* [`CachedVessel3DOF`](@ref): preassembled inertia, inverse, and linear damping.
+* [`Vessel3DOF`](@ref): cached 3-DOF vessel model (implements [`AbstractVesselModel`](@ref)).
 
 **Kinematics and frames**
 
-* [`rotation`](@ref): body → Earth rotation matrix in the horizontal plane.
+* [`rotation_body_to_earth`](@ref): body → Earth rotation matrix in the horizontal plane.
 * [`kinematics`](@ref): computes $\dot{\eta}$ from $\eta$ and $\nu$.
 
-**Core dynamics**
+**Core dynamics and interface**
 
+* [`AbstractVesselModel`](@ref): DOF-agnostic vessel model interface.
 * [`mass_matrix`](@ref): builds $\mathbf{M} = \mathbf{M}_{RB} + \mathbf{M}_A$.
-* [`build_cached_vessel`](@ref): caches $\mathbf{M}$, $\mathbf{M}^{-1}$ and $\mathbf{D}_\text{lin}$.
-* [`damping_forces`](@ref): evaluates $\mathbf{D}(\nu) \, \nu$.
-* [`coriolis_forces`](@ref): evaluates $\mathbf{C}(\nu) \, \nu$.
-* [`body_dynamics`](@ref): computes $\dot{\nu}$.
-* [`vessel_dynamics`](@ref): computes the full 6-state derivative.
+* [`damping_forces`](@ref): evaluates $\mathbf{D}(\nu)\,\nu$.
+* [`coriolis_forces`](@ref): evaluates $\mathbf{C}(\nu)\,\nu$.
+* [`body_dynamics`](@ref): computes $\dot{\nu}$ from $\nu$, model, and $\tau$.
+* [`vessel_dynamics`](@ref): computes the full $[\,\dot{\eta}\;\dot{\nu}\,]$ state derivative.
+* [`vessel_rhs!`](@ref): in-place ODE right-hand side for use with `DifferentialEquations.jl`.
+
+**Fossen-style helpers**
+
+* [`hydroparams_fossen3dof`](@ref): build `HydroParams3DOF` from manoeuvring derivatives.
+* [`vesselparams_fossen3dof`](@ref): assemble `VesselParams3DOF` from rigid-body + manoeuvring data.
+* [`build_vessel3dof_fossen`](@ref): convenience constructor for a cached 3-DOF model.
 
 See:
 
@@ -60,17 +67,18 @@ rb = RigidBody3DOF(m, Iz, xG)
 # 2. Hydrodynamics (Fossen-style derivatives)
 hydro = hydroparams_fossen3dof(
     Xudot, Yvdot, Yrdot, Nrdot,   # added mass
-    Xu,    Yv,    Yr,    Nv, Nr,  # linear damping
-    Xuu,   Yvv,   Nrr,            # quadratic damping
+    Xu,    Yv,    Yr,    Nv,  Nr, # linear damping
+    Xuu,   Yvv,   Nrr;            # quadratic damping
+    Xv = Xv, Xr = Xr, Yu = Yu, Nu = Nu,
 )
 
 # 3. Bundle parameters and build cached model
 params = VesselParams3DOF(rb, hydro)
-model  = build_cached_vessel(params)
+model  = Vessel3DOF(params)  # cached M, M⁻¹ and D_lin
 
 # 4. Evaluate state derivative once
-X = @SVector [x, y, ψ, u, v, r]   # 6×1 state
-τ = @SVector [τx, τy, τψ]         # 3×1 generalized forces
+X = @SVector [x, y, ψ, u, v, r]   # 6×1 state: [η; ν]
+τ = @SVector [τx, τy, τψ]         # 3×1 generalised forces
 
 Xdot = vessel_dynamics(X, model, τ)
 ```

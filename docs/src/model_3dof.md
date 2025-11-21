@@ -23,16 +23,16 @@ We follow the standard Fossen 3-DOF surface craft model in surge–sway–yaw:
 with
 
 * body-fixed velocity vector
-  (\boldsymbol{\nu} = [u, v, r]^T),
+  $\boldsymbol{\nu} = [u, v, r]^T$,
 * generalized forces/moments
-  (\boldsymbol{\tau} = [\tau_x, \tau_y, \tau_\psi]^T),
-* constant inertia matrix (\mathbf{M} = \mathbf{M}_{RB} + \mathbf{M}_A),
-* Coriolis/centripetal term (\mathbf{C}(\boldsymbol{\nu}) \boldsymbol{\nu}),
+  $\boldsymbol{\tau} = [\tau_x, \tau_y, \tau_\psi]^T$,
+* constant inertia matrix $\mathbf{M} = \mathbf{M}_{RB} + \mathbf{M}_A$,
+* Coriolis/centripetal term $\mathbf{C}(\boldsymbol{\nu})\, \boldsymbol{\nu}$,
 * linear + quadratic hydrodynamic damping
-  (\mathbf{D}(\boldsymbol{\nu}) \boldsymbol{\nu}).
+  $\mathbf{D}(\boldsymbol{\nu})\, \boldsymbol{\nu}$.
 
 The kinematics relate body-fixed velocities to Earth-fixed pose
-(\boldsymbol{\eta} = [x, y, \psi]^T) via
+$\boldsymbol{\eta} = [x, y, \psi]^T$ via
 
 ```math
 \dot{\boldsymbol{\eta}} = \mathbf{R}(\psi)\, \boldsymbol{\nu}.
@@ -52,9 +52,16 @@ The full state is
 The rigid-body parameters and hydrodynamic coefficients are stored in
 [`RigidBody3DOF`](@ref), [`QuadraticDamping3DOF`](@ref),
 [`HydroParams3DOF`](@ref) and [`VesselParams3DOF`](@ref). The assembled
-inertia and damping are cached in [`CachedVessel3DOF`](@ref), and the
-inertia matrix is constructed by [`mass_matrix`](@ref) and cached via
-[`build_cached_vessel`](@ref).
+inertia and damping are cached in [`Vessel3DOF`](@ref), which is the
+3-DOF implementation of [`AbstractVesselModel`](@ref). The inertia matrix
+is constructed by [`mass_matrix`](@ref) and stored (together with its
+inverse) inside the `Vessel3DOF` model.
+
+You typically build a model via
+
+* `Vessel3DOF(params)` when you already have `VesselParams3DOF`, or
+* [`build_vessel3dof_fossen`](@ref) when starting from Fossen-style
+  manoeuvring derivatives.
 
 ### Rigid-body mass
 
@@ -76,7 +83,7 @@ helper and used by [`mass_matrix`](@ref).
 
 ### Added mass
 
-The added-mass matrix (\mathbf{M}_A) is stored directly inside
+The added-mass matrix $\mathbf{M}_A$ is stored directly inside
 [`HydroParams3DOF`](@ref). When constructed via
 [`hydroparams_fossen3dof`](@ref) it has the simplified Fossen 3-DOF
 structure
@@ -90,7 +97,7 @@ structure
 \end{bmatrix},
 ```
 
-where (X_{\dot{u}}, Y_{\dot{v}}, Y_{\dot{r}}, N_{\dot{r}}) are the usual
+where $X_{\dot{u}}, Y_{\dot{v}}, Y_{\dot{r}}, N_{\dot{r}}$ are the usual
 Fossen added-mass derivatives.
 
 The total inertia matrix is
@@ -100,7 +107,7 @@ The total inertia matrix is
 ```
 
 and is constructed by [`mass_matrix`](@ref) and cached in
-[`CachedVessel3DOF`](@ref).
+[`Vessel3DOF`](@ref).
 
 ---
 
@@ -131,7 +138,7 @@ Both matrices are constructed internally from the parameters and satisfy
 
 so that they do not create or dissipate energy.
 
-The product $\mathbf{C}(\boldsymbol{\nu}) \, \boldsymbol{\nu}$ is provided by [`coriolis_forces`](@ref).
+The product $\mathbf{C}(\boldsymbol{\nu}) , \boldsymbol{\nu}$ is provided by [`coriolis_forces`](@ref).
 
 ---
 
@@ -152,7 +159,7 @@ quadratic part:
 
 The physical linear damping matrix (\mathbf{D}_{\text{lin}}) is stored
 directly in [`HydroParams3DOF`](@ref) and cached in
-[`CachedVessel3DOF`](@ref). It is used exactly as it appears in the
+[`Vessel3DOF`](@ref). It is used exactly as it appears in the
 equations:
 
 ```math
@@ -170,6 +177,11 @@ Y_u & Y_v & Y_r \\
 N_u & N_v & N_r
 \end{bmatrix}.
 ```
+
+Here the derivatives are given in Fossen’s convention (typically
+non-positive for drag), while $\mathbf{D}_{\text{lin}}$ itself is a
+physical damping matrix that appears in the equation
+$\mathbf{D}(\boldsymbol{\nu})\, \boldsymbol{\nu}$.
 
 ### Quadratic damping
 
@@ -254,4 +266,5 @@ combined 6-element derivative.
   `ν̇`, and returns the full 6-element state derivative.
 
 These functions are designed to be used directly with differential
-equation solvers and automatic differentiation.
+equation solvers and automatic differentiation, with `Vessel3DOF` as the
+concrete 3-DOF model type.

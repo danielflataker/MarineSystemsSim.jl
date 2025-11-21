@@ -13,13 +13,14 @@ end
 This page walks through two typical workflows:
 
 1. **Fossen-style quick start** (recommended): use
+   [`build_vessel3dof_fossen`](@ref) or
    [`hydroparams_fossen3dof`](@ref) with manoeuvring derivatives.
 2. **Lower-level setup**: build `HydroParams3DOF` from your own matrices.
 
 We assume you will also use an ODE solver, e.g.:
 
 ```julia
-using DifferentialEquations   # or OrdinaryDiffEq if you prefer
+using DifferentialEquations   # or OrdinaryDiffEq
 ```
 
 ---
@@ -33,15 +34,22 @@ The 3-DOF model uses:
 * [`RigidBody3DOF`](@ref) for mass, inertia, and CG position,
 * [`HydroParams3DOF`](@ref) for added mass and damping,
 * [`VesselParams3DOF`](@ref) as a container,
-* [`hydroparams_fossen3dof`](@ref) as a convenience constructor from
+* [`Vessel3DOF`](@ref) as the cached 3-DOF model,
+* [`build_vessel3dof_fossen`](@ref) and
+  [`vesselparams_fossen3dof`](@ref) as convenience constructors from
   Fossen-style derivatives.
+
+The recommended “one-shot” constructor from Fossen derivatives is
+[`build_vessel3dof_fossen`](@ref):
 
 ```julia
 using MarineSystemsSim
 using StaticArrays
 
 # Rigid-body parameters
-rb = RigidBody3DOF(10.0, 25.0, 1.5)
+m  = 10.0
+Iz = 25.0
+xG = 1.5
 
 # Hydrodynamic coefficients (Fossen-style)
 Xudot =  1.0
@@ -59,7 +67,8 @@ Xuu = -0.1
 Yvv = -0.2
 Nrr = -0.3
 
-hydro = hydroparams_fossen3dof(
+model = build_vessel3dof_fossen(
+    m, Iz, xG,
     Xudot, Yvdot, Yrdot, Nrdot,
     Xu,    Yv,    Yr,    Nv,    Nr,
     Xuu,   Yvv,   Nrr;
@@ -69,29 +78,33 @@ hydro = hydroparams_fossen3dof(
     Yu = 0.0,
     Nu = 0.0,
 )
-
-params = VesselParams3DOF(rb, hydro)
 ```
 
-### 1.2 Build a cached model
+Internally this constructs `RigidBody3DOF`, `HydroParams3DOF`,
+`VesselParams3DOF`, and finally a cached [`Vessel3DOF`](@ref).
 
-[`build_cached_vessel`](@ref) precomputes:
-
-* the `3×3` inertia matrix `M = M_RB + M_A`,
-* its inverse `Minv`,
-* the linear damping matrix `D_lin`.
-
-This is convenient (and faster) if you simulate many steps with fixed
-parameters.
+If you prefer to build the pieces explicitly, you can do:
 
 ```julia
-model = build_cached_vessel(params)
+rb = RigidBody3DOF(m, Iz, xG)
+
+hydro = hydroparams_fossen3dof(
+    Xudot, Yvdot, Yrdot, Nrdot,
+    Xu,    Yv,    Yr,    Nv,    Nr,
+    Xuu,   Yvv,   Nrr;
+    Xv = 0.0,
+    Xr = 0.0,
+    Yu = 0.0,
+    Nu = 0.0,
+)
+
+params = VesselParams3DOF(rb, hydro)
+model  = Vessel3DOF(params)
 ```
 
-The resulting [`CachedVessel3DOF`](@ref) is what you pass to your
-dynamics and ODE solvers.
+Both approaches produce the same `Vessel3DOF` model.
 
-### 1.3 Choose state and input
+### 1.2 State and input
 
 The 3-DOF state is
 
@@ -112,41 +125,53 @@ Example initial condition and input:
 X0 = @SVector [0.0, 0.0, 0.0,   # x, y, ψ
                0.0, 0.0, 0.0]   # u, v, r
 
-τ  = @SVector [1.0, 0.0, 0.0]   # constant generalized forces in surge, sway, yaw
+τ_const  = @SVector [1.0, 0.0, 0.0]   # constant generalized forces in surge, sway, yaw
 ```
 
-### 1.4 Define the right-hand side
-
-The core high-level function is [`vessel_dynamics`](@ref), which computes
-`Ẋ` from state, model, and input.
-
-Out-of-place version:
+We will treat the generalized forces as a function
+`τfun(::SVector{6}, t)` that returns a `SVector{3}`. For a constant
+thrust in surge:
 
 ```julia
-f(X, p, t) = vessel_dynamics(SVector{6}(X), p, τ)
+τfun(X, t) = τ_const
 ```
 
-If your solver expects an in-place form, you can wrap it as:
+### 1.3 Right-hand side using `vessel_rhs!`
+
+The high-level function [`vessel_dynamics`](@ref) computes `Ẋ` from
+state, model, and input for any [`AbstractVesselModel`](@ref). For ODE
+solvers it is often convenient to use the in-place wrapper
+[`vessel_rhs!`](@ref):
 
 ```julia
-function f!(dX, X, p, t)
-    dX .= f(X, p, t)
-    return nothing
+function rhs!(dX, X, p, t)
+    model, τfun = p
+    vessel_rhs!(dX, X, model, τfun, t)
 end
 ```
 
-### 1.5 Solve the ODE
+This function:
+
+* treats `X` as a length-`6` state vector `[η; ν]`,
+* converts it to an `SVector` internally,
+* calls [`vessel_dynamics`](@ref),
+* writes the result into `dX`.
+
+### 1.4 Solve the ODE
 
 Here is an example using `DifferentialEquations.jl`:
 
 ```julia
 using DifferentialEquations
 
+tspan = (0.0, 100.0)
+p     = (model, τfun)         # parameters: model + input function
+
 prob = ODEProblem(
-    f!,              # in-place RHS
-    collect(X0),     # ODEProblem likes a plain Vector
-    (0.0, 100.0),    # time span
-    model,           # parameters (CachedVessel3DOF)
+    rhs!,          # in-place RHS
+    collect(X0),   # ODEProblem likes a plain Vector
+    tspan,
+    p,
 )
 
 sol = solve(prob, Tsit5(); reltol = 1e-8, abstol = 1e-8)
@@ -209,8 +234,9 @@ D_lin = @SMatrix [
     0.0   0.0   3.0,
 ]
 
-# Quadratic damping coefficients. When constructed via
-# hydroparams_fossen3dof these are Fossen-style derivatives Xuu,Yvv,Nrr.
+# Quadratic damping coefficients.
+# When constructed via hydroparams_fossen3dof these are Fossen-style
+# derivatives Xuu, Yvv, Nrr (typically ≤ 0).
 D_quad = QuadraticDamping3DOF(
     -0.1,   # Xuu
     -0.2,   # Yvv
@@ -219,7 +245,7 @@ D_quad = QuadraticDamping3DOF(
 
 hydro = HydroParams3DOF(M_A, D_lin, D_quad)
 params = VesselParams3DOF(rb, hydro)
-model  = build_cached_vessel(params)
+model  = Vessel3DOF(params)
 ```
 
 From here you can use the same high-level functions as before:
@@ -294,5 +320,5 @@ julia> size(J)
 (3, 3)
 ```
 
-Here `J` is the Jacobian (\partial \dot{\nu} / \partial \nu), which you can
+Here `J` is the Jacobian $\partial \dot{\nu} / \partial \nu$, which you can
 use for linearization, MPC, or sensitivity analysis.

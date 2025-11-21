@@ -12,11 +12,12 @@ See the other pages for motivation, theory, and examples.
 ## Types
 
 ```@docs
+AbstractVesselModel
 RigidBody3DOF
 QuadraticDamping3DOF
 HydroParams3DOF
 VesselParams3DOF
-CachedVessel3DOF
+Vessel3DOF
 ```
 
 ---
@@ -25,6 +26,8 @@ CachedVessel3DOF
 
 ```@docs
 hydroparams_fossen3dof
+vesselparams_fossen3dof
+build_vessel3dof_fossen
 ```
 
 ---
@@ -32,13 +35,13 @@ hydroparams_fossen3dof
 ## Kinematics and frames
 
 ```@docs
-rotation
+rotation_body_to_earth
 kinematics
 ```
 
 ---
 
-## Core dynamics
+## Core dynamics and ODE helpers
 
 ```@docs
 mass_matrix
@@ -46,7 +49,7 @@ damping_forces
 coriolis_forces
 body_dynamics
 vessel_dynamics
-build_cached_vessel
+vessel_rhs!
 ```
 
 If additional modules (e.g. for thrusters, controllers, or 6-DOF
