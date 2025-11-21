@@ -44,6 +44,7 @@ kinematics
 ## Core dynamics and ODE helpers
 
 ```@docs
+dofs
 mass_matrix
 damping_forces
 coriolis_forces

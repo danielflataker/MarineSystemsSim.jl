@@ -223,6 +223,21 @@ function hydroparams_fossen3dof(
 end
 
 
+"""
+$(TYPEDSIGNATURES)
+
+Convenience constructor for 3-DOF vessel parameters from Fossen-style
+manoeuvring derivatives.
+
+This wraps [`hydroparams_fossen3dof`](@ref) and [`VesselParams3DOF`](@ref)
+into a single call:
+
+- builds [`HydroParams3DOF`](@ref) from added-mass and damping derivatives, and
+- returns `VesselParams3DOF(rb, hydro)`.
+
+All derivatives use Fossen's sign convention (linear and quadratic drag
+derivatives are typically ≤ 0).
+"""
 function vesselparams_fossen3dof(
     m::T, Iz::T, xG::T,
     Xudot::T, Yvdot::T, Yrdot::T, Nrdot::T,
