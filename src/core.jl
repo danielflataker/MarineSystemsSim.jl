@@ -25,7 +25,7 @@ abstract type AbstractVesselModel{N,T} end
 """
 Return the number of degrees of freedom for a vessel model.
 """
-dofs(::AbstractVesselModel{N}) where {N} = N
+@inline dofs(::AbstractVesselModel{N}) where {N} = N
 
 
 @noinline function _interface_error(f, model)
@@ -41,7 +41,7 @@ Return the generalized mass matrix `M` for the given vessel model.
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
 """
-mass_matrix(model::AbstractVesselModel) =
+mass_matrix(model::AbstractVesselModel{N,T}) where {N,T} =
     _interface_error(mass_matrix, model)
 
 
@@ -52,7 +52,10 @@ body-fixed velocity `ν`.
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
 """
-damping_forces(nu, model::AbstractVesselModel) =
+damping_forces(
+    ν::SVector{N,S},
+    model::AbstractVesselModel{N,T},
+) where {N,S<:Real,T} =
     _interface_error(damping_forces, model)
 
 
@@ -63,7 +66,10 @@ model and body-fixed velocity `ν`.
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
 """
-coriolis_forces(nu, model::AbstractVesselModel) =
+coriolis_forces(
+    ν::SVector{N,S},
+    model::AbstractVesselModel{N,T},
+) where {N,S<:Real,T} =
     _interface_error(coriolis_forces, model)
 
 
@@ -74,7 +80,11 @@ position/orientation `η` and body-fixed velocity `ν`.
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
 """
-kinematics(eta, nu, model::AbstractVesselModel) =
+kinematics(
+    η::SVector{N,S},
+    ν::SVector{N,S},
+    model::AbstractVesselModel{N,T},
+) where {N,S<:Real,T} =
     _interface_error(kinematics, model)
 
 
@@ -86,7 +96,10 @@ The default implementation calls `mass_matrix(model) \\ rhs`. Concrete
 vessel models can override this method to use cached inverses or
 factorisations for efficiency.
 """
-function mass_solve(model::AbstractVesselModel, rhs)
+function mass_solve(
+    model::AbstractVesselModel{N,T},
+    rhs::SVector{N,S},
+)::SVector{N,promote_type(T,S)} where {N,T,S<:Real}
     M = mass_matrix(model)
     return M \ rhs
 end
@@ -104,12 +117,23 @@ The default implementation uses the interface functions
 M ν̇ + C(ν)ν + D(ν)ν = τ, \\quad
 ν̇ = M^{-1} (τ - C(ν)ν - D(ν)ν).
 ```
-
 """
-function body_dynamics(nu, model::AbstractVesselModel, tau)
-    Dnu  = damping_forces(nu, model)
-    Cnu  = coriolis_forces(nu, model)
-    rhs = tau - Cnu - Dnu
+function body_dynamics(ν, model::AbstractVesselModel, τ)
+    Dν  = damping_forces(ν, model)
+    Cν  = coriolis_forces(ν, model)
+    rhs = τ - Cν - Dν
+    return mass_solve(model, rhs)
+end
+
+# Type-stable specialisation for static vectors with matching scalar type
+function body_dynamics(
+    ν::SVector{N,S},
+    model::AbstractVesselModel{N,T},
+    τ::SVector{N,S},
+)::SVector{N,S} where {N,S<:Real,T<:Real}
+    Dν  = damping_forces(ν, model)
+    Cν  = coriolis_forces(ν, model)
+    rhs = τ - Cν - Dν
     return mass_solve(model, rhs)
 end
 
@@ -130,15 +154,23 @@ The default implementation splits `X`, calls [`kinematics`](@ref) and
 models can provide more specialised methods if needed.
 """
 function vessel_dynamics(
-    X::SVector{M,S},
+    X::SVector{M,SX},
     model::AbstractVesselModel{N,T},
-    τ,
-) where {M,N,S<:Real,T}
+    τ::SVector{N,ST},
+) where {M,N,SX<:Real,ST<:Real,T}
     @assert M == 2N "State vector X must have length 2N for N-DOF vessel models."
-    η = SVector{N,S}(ntuple(i -> X[i], N))
-    ν = SVector{N,S}(ntuple(i -> X[N + i], N))
+    
+    # Promote element types so X and τ live in the same numeric world
+    S = promote_type(SX, ST)
+    
+    η = SVector{N,S}(ntuple(i -> convert(S, X[i]), N))
+    ν = SVector{N,S}(ntuple(i -> convert(S, X[N + i]), N))
+
+    τp = SVector{N,S}(τ)
+
     ηdot = kinematics(η, ν, model)
     νdot = body_dynamics(ν, model, τ)
+    
     return vcat(ηdot, νdot)
 end
 
@@ -154,17 +186,18 @@ function vessel_rhs!(
     dX,
     X,
     model::AbstractVesselModel{N,T},
-    tau_fun,
+    τfun,
     t,
 ) where {N,T}
     @assert length(X) == 2N "State vector X must have length 2N for N-DOF vessel models."
 
-    # Convert the mutable state vector to an SVector for fast math
+    # Convert mutable state to SVector for fast math / AD
     Xs = SVector{2N, eltype(X)}(Tuple(X))
 
-    tau   = tau_fun(Xs, t)
-    dXs   = vessel_dynamics(Xs, model, tau)
+    τ   = τfun(Xs, t)
+    dXs = vessel_dynamics(Xs, model, τ)
 
     @. dX = dXs
     return nothing
 end
+
