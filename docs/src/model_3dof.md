@@ -223,11 +223,11 @@ The 3-DOF kinematics in the horizontal plane are
 where $\mathbf{R}(\psi)$ is the rotation from body-fixed to Earth-fixed
 frame.
 
-[`rotation`](@ref) returns the $3 \times 3$ rotation matrix
+[`rotation_body_to_earth`](@ref) returns the $3 \times 3$ rotation matrix
 $\mathbf{R}(\psi)$, and [`kinematics`](@ref) computes
 $\dot{\boldsymbol{\eta}}$ for a given pose and velocity.
 
-* `rotation(ψ)` returns the `3×3` rotation matrix $\mathbf{R}(\psi)$,
+* `rotation_body_to_earth(ψ)` returns the `3×3` rotation matrix $\mathbf{R}(\psi)$,
 * `kinematics(η, ν)` computes $\dot{\boldsymbol{\eta}}$ for a given
   pose and velocity.
 
