@@ -56,3 +56,11 @@ vessel_rhs!
 If additional modules (e.g. for thrusters, controllers, or 6-DOF
 extensions) are added later, their public API can be listed in separate
 sections here.
+
+---
+
+## Internal helpers (advanced)
+
+```@docs
+mass_solve
+```
