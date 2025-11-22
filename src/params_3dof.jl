@@ -9,22 +9,17 @@ $(TYPEDEF)
 Rigid-body parameters for 3-DOF motion in the horizontal plane.
 
 # Fields
-- `m::T`: Mass of the vessel [``\\mathrm{kg}``].
-- `Iz::T`: Yaw moment of inertia about the z-axis [``\\mathrm{kg \\, m^2}``].
-- `xG::T`: x-position of the center of gravity in the body-fixed frame [``\\mathrm{m}``].
+- `m::T`: Mass of the vessel [kg].
+- `Iz::T`: Yaw moment of inertia about the z-axis [kg*m^2].
+- `xG::T`: x-position of the center of gravity in the body-fixed frame [m].
 
 # Notes
 
 The 3-DOF rigid-body mass matrix is
 
-```math
-\\mathbf{M}_{RB} =
-\\begin{bmatrix}
- m & 0 & 0 \\\\
- 0 & m & m x_G \\\\
- 0 & m x_G & I_z
-\\end{bmatrix}.
-```
+    [ m      0      0
+      0      m    m*xG
+      0    m*xG   Iz ]
 """
 struct RigidBody3DOF{T<:Real}
     m  :: T
@@ -65,20 +60,12 @@ This type stores Fossen-style manoeuvring derivatives for the diagonal
 approximation to the nonlinear damping matrix. They appear in the
 velocity-dependent damping term
 
-```math
-\\mathbf{D}_\\text{n}(\\boldsymbol{\\nu})\\,\\boldsymbol{\\nu}
-=
--\\operatorname{diag}(
-  X_{uu}\\lvert u\\rvert,\\,
-  Y_{vv}\\lvert v\\rvert,\\,
-  N_{rr}\\lvert r\\rvert
-)\\,\\boldsymbol{\\nu}.
-```
+    D_n(ν) ν = -diag(X_uu * |u|, Y_vv * |v|, N_rr * |r|) ν.
 
 Sign convention:
 
 * `Xuu`, `Yvv`, `Nrr` correspond to the hydrodynamic derivatives
-  `X_{uu}, Y_{vv}, N_{rr}` in Fossen's notation.
+  `X_uu, Y_vv, N_rr` in Fossen's notation.
 * In many identification schemes these are non-positive so that the
   effective damping is dissipative, but this is not enforced here.
 """
@@ -97,22 +84,17 @@ Hydrodynamic parameters for 3-DOF surge–sway–yaw motion.
 
 The 3-DOF vessel model is written as
 
-```math
-\\mathbf{M} \\dot{\\boldsymbol{\\nu}} +
-\\mathbf{C}(\\boldsymbol{\\nu})\\,\\boldsymbol{\\nu} +
-\\mathbf{D}(\\boldsymbol{\\nu})\\,\\boldsymbol{\\nu}
-= \\boldsymbol{\\tau},
-```
+    M ν̇ + C(ν) ν + D(ν) ν = τ,
 
-where `\\mathbf{M} = \\mathbf{M}_{RB} + \\mathbf{M}_A` and
-`\\mathbf{D} = \\mathbf{D}_\\text{lin} + \\mathbf{D}_\\text{n}(\\boldsymbol{\\nu})`.
+where `M = M_RB + M_A` and
+`D = D_lin + D_n(ν)`.
 
 `HydroParams3DOF` stores the hydrodynamic contribution in matrix form:
 
 * `M_A`   — the 3×3 added-mass matrix.
 * `D_lin` — the 3×3 linear manoeuvring damping matrix.
 * `D_quad` — quadratic damping coefficients used to build
-  the velocity-dependent matrix `\\mathbf{D}_\\text{n}(\\boldsymbol{\\nu})`.
+  the velocity-dependent matrix `D_n(ν)`.
 
 In the standard Fossen 3-DOF surface craft model these matrices have
 a particular structure. That structure is not required by the core
@@ -148,48 +130,17 @@ manoeuvring derivatives.
 
 This helper maps the usual surge–sway–yaw derivatives
 
-* Added mass:
-  `Xudot`, `Yvdot`, `Yrdot`, `Nrdot`
-* Linear damping:
-  `Xu`, `Yv`, `Yr`, `Nv`, `Nr` plus optional cross-terms `Xv`, `Xr`,
-  `Yu`, `Nu`
-* Quadratic damping:
-  `Xuu`, `Yvv`, `Nrr`
+* Added mass:      `Xudot`, `Yvdot`, `Yrdot`, `Nrdot`
+* Linear damping:  `Xu`, `Yv`, `Yr`, `Nv`, `Nr` plus optional cross-terms
+                   `Xv`, `Xr`, `Yu`, `Nu`
+* Quadratic damping: `Xuu`, `Yvv`, `Nrr`
 
-to the internal matrices `M_A` and `D_lin` and the quadratic
+into the internal representation `HydroParams3DOF`, i.e. the added-mass
+matrix `M_A`, the linear damping matrix `D_lin`, and the quadratic
 coefficients `D_quad`.
 
-The resulting added-mass matrix is
-
-```math
-\\mathbf{M}_A =
-\\begin{bmatrix}
-- X_{\\dot{u}} & 0              & 0 \\\\
-0              & - Y_{\\dot{v}} & - Y_{\\dot{r}} \\\\
-0              & - Y_{\\dot{r}} & - N_{\\dot{r}}
-\\end{bmatrix},
-```
-assuming the simplified symmetric 3-DOF Fossen form,
-where the off-diagonal terms are given by a single derivative ``Y_{\\dot{r}}``, so that
-``\\mathbf{M}_{A,23} = \\mathbf{M}_{A,32} = -Y_{\\dot{r}}``.
-
-The linear damping matrix is
-
-```math
-\\mathbf{D}_\\text{lin} =
--\\begin{bmatrix}
-X_u & X_v & X_r \\\\
-Y_u & Y_v & Y_r \\\\
-N_u & N_v & N_r
-\\end{bmatrix}.
-```
-
-The quadratic derivatives `Xuu`, `Yvv`, `Nrr` are stored in
-[`QuadraticDamping3DOF`](@ref) and used to build the diagonal
-approximation to `\\mathbf{D}_\\text{n}(\\boldsymbol{\\nu})`.
-
-All derivatives are given with Fossen's sign convention; no sign
-flips are applied to the inputs.
+All derivatives are given with Fossen's sign convention; no sign flips
+are applied.
 """
 function hydroparams_fossen3dof(
     Xudot::T, Yvdot::T, Yrdot::T, Nrdot::T,

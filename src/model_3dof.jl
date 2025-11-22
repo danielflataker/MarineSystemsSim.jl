@@ -71,29 +71,22 @@ Compute hydrodynamic damping forces/moments in surge, sway and yaw.
 
 Given body-fixed velocity
 
-```math
-\\boldsymbol{\\nu} = [u, v, r]^T,
-```
+    ν = [u, v, r]ᵀ,
 
 this function evaluates the total damping matrix
 
-```math
-\\mathbf{D}(\\boldsymbol{\\nu}) =
-\\mathbf{D}_\\text{lin} + \\mathbf{D}_\\text{n}(\\boldsymbol{\\nu}),
-```
+    D(ν) = D_lin + D_n(ν),
 
 and returns the product
 
-```math
-\\mathbf{D}(\\boldsymbol{\\nu})\\,\\boldsymbol{\\nu}.
-```
+    D(ν) ν.
 
 Here `D_lin` is the cached linear damping matrix from the model and
-`\\mathbf{D}_\\text{n}(\\boldsymbol{\\nu})` is constructed from the
-quadratic coefficients stored in `model.params.hydro.D_quad`.
+`D_n(ν)` is constructed from the quadratic coefficients stored in
+`model.params.hydro.D_quad`.
 
 Returns an `SVector{3}` containing the damping forces/moment
-`[X_d, Y_d, N_d]^T`.
+`[X_d, Y_d, N_d]ᵀ`.
 """
 @inline function damping_forces(
     nu::SVector{3,S},
@@ -106,22 +99,17 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Compute the Coriolis/centripetal term ``\\mathbf{C}(\\boldsymbol{\\nu})\\,\\boldsymbol{\\nu}``
+Compute the Coriolis/centripetal term C(ν) ν
 for the 3-DOF model.
 
 The implementation constructs both the rigid-body part
-``\\mathbf{C}_{RB}(\\boldsymbol{\\nu})`` and the added-mass part
-``\\mathbf{C}_A(\\boldsymbol{\\nu})`` as ``3\\times 3`` matrices following
+C_RB(ν) and the added-mass part
+C_A(ν) as 3×3 matrices following
 the standard Fossen 3-DOF surface craft model, and returns
 
-```math
-\\mathbf{C}(\\boldsymbol{\\nu})\\,\\boldsymbol{\\nu}
-=
-\\bigl( \\mathbf{C}_{RB}(\\boldsymbol{\\nu})
-      + \\mathbf{C}_A(\\boldsymbol{\\nu}) \\bigr) \\, \\boldsymbol{\\nu}.
-```
+    C(ν) ν = (C_RB(ν) + C_A(ν)) ν.
 
-Returns an `SVector{3}` representing ``\\mathbf{C}(\\boldsymbol{\\nu}) \\, \\boldsymbol{\\nu}``.
+Returns an `SVector{3}` representing C(ν) ν.
 """
 function coriolis_forces(
     nu    :: SVector{3,S},
@@ -141,7 +129,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-3-DOF kinematics `η̇ = R(ψ) ν` for the cached vessel model.
+3-DOF kinematics η̇ = R(ψ) ν for the cached vessel model.
 
 This method dispatches to the 3-DOF kinematic relation defined in
 [`kinematics(η, ν)`](@ref) and exists to satisfy the interface defined

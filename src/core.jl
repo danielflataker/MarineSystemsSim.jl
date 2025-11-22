@@ -11,9 +11,9 @@ example a cached 3-DOF or 6-DOF model) and are expected to implement
 at least the following interface:
 
 - [`mass_matrix(model::AbstractVesselModel)`](@ref): return the generalized mass matrix `M`.
-- [`damping_forces(nu, model::AbstractVesselModel)`](@ref): return the damping term `D(nu) nu`.
-- [`coriolis_forces(nu, model::AbstractVesselModel)`](@ref): return the Coriolis/centripetal term `C(nu) nu`.
-- [`kinematics(eta, nu, model::AbstractVesselModel)`](@ref): return the kinematic relation `dot_eta`.
+- [`damping_forces(nu, model::AbstractVesselModel)`](@ref): return the damping term `D(ν) ν`.
+- [`coriolis_forces(nu, model::AbstractVesselModel)`](@ref): return the Coriolis/centripetal term `C(ν) ν`.
+- [`kinematics(eta, nu, model::AbstractVesselModel)`](@ref): return the kinematic relation `η̇`.
 
 The high-level routines [`body_dynamics`](@ref),
 [`vessel_dynamics`](@ref), and [`vessel_rhs!`](@ref) use these
@@ -36,7 +36,7 @@ end
 
 
 """
-Return the generalized mass matrix `M` for the given vessel model.
+Return the generalized mass matrix for the given vessel model `model`.
 
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
@@ -46,8 +46,8 @@ mass_matrix(model::AbstractVesselModel{N,T}) where {N,T} =
 
 
 """
-Return the damping term `D(ν) ν` for the given vessel model and
-body-fixed velocity `ν`.
+Return the damping term D(ν) ν for the given vessel model and
+body-fixed velocity ν.
 
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
@@ -60,8 +60,8 @@ damping_forces(
 
 
 """
-Return the Coriolis/centripetal term `C(ν) ν` for the given vessel
-model and body-fixed velocity `ν`.
+Return the Coriolis/centripetal term C(ν) ν for the given vessel
+model and body-fixed velocity ν.
 
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
@@ -74,8 +74,8 @@ coriolis_forces(
 
 
 """
-Return the kinematic relation `η̇` for the given vessel model, based on
-position/orientation `η` and body-fixed velocity `ν`.
+Return the kinematic relation η̇ for the given vessel model, based on
+position/orientation η and body-fixed velocity ν.
 
 Concrete subtypes of [`AbstractVesselModel`](@ref) must implement this
 method.
@@ -89,7 +89,7 @@ kinematics(
 
 
 """
-Solve `M ν̇ = rhs` for `ν̇`, using the mass matrix associated with the
+Solve M ν̇ = rhs for ν̇, using the mass matrix associated with the
 vessel model.
 
 The default implementation calls `mass_matrix(model) \\ rhs`. Concrete
@@ -106,17 +106,15 @@ end
 
 
 """
-Compute the body-fixed acceleration `ν̇` for a vessel model given the
-generalised forces `τ`.
+Compute the body-fixed acceleration ν̇ for a vessel model given the
+generalised forces τ.
 
 The default implementation uses the interface functions
 [`damping_forces`](@ref), [`coriolis_forces`](@ref) and
 [`mass_solve`](@ref):
 
-```math
-M ν̇ + C(ν)ν + D(ν)ν = τ, \\quad
-ν̇ = M^{-1} (τ - C(ν)ν - D(ν)ν).
-```
+    M ν̇ + C(ν) ν + D(ν) ν = τ
+    ν̇ = M⁻¹ (τ - C(ν) ν - D(ν) ν).
 """
 function body_dynamics(ν, model::AbstractVesselModel, τ)
     Dν  = damping_forces(ν, model)
@@ -143,9 +141,7 @@ Compute the full state derivative `[η̇; ν̇]` for a vessel model.
 
 The state vector is ordered as
 
-```math
-X = [η; ν],
-```
+    X = [η; ν],
 
 where both `η` and `ν` have length `N = dofs(model)`.
 

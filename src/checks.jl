@@ -22,7 +22,7 @@ This helper performs three classes of checks:
 
 3. **Energy-based check**:
    For a small set of test velocities the power
-   ``\\boldsymbol{\\nu}^T \\mathbf{D}(\\boldsymbol{\\nu})\\,\\boldsymbol{\\nu}``
+   `νᵀ D(ν) ν`
    is evaluated. If this is significantly negative for any of the
    test points, a warning is issued because the damping appears to
    inject energy.

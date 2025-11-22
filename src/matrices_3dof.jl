@@ -3,20 +3,16 @@
 """
 $(TYPEDSIGNATURES)
 
-Rigid-body mass matrix ``\\mathbf{M}_{RB}`` for 3-DOF surge–sway–yaw motion.
+Rigid-body mass matrix `M_RB` for 3-DOF surge–sway–yaw motion.
 
 Implements the planar rigid-body mass matrix for a surface craft with
-mass `m`, yaw inertia `Iz` and centre of gravity at ``(x_G, 0)`` in
-the body-fixed frame:
+mass `m`, yaw inertia `Iz` and centre of gravity at `(x_G, 0)` in the
+body-fixed frame:
 
-```math
-\\mathbf{M}_{RB} =
-\\begin{bmatrix}
- m & 0 & 0 \\\\
- 0 & m & m x_G \\\\
- 0 & m x_G & I_z
-\\end{bmatrix}.
-```
+    M_RB = [  m      0      0
+              0      m    m*x_G
+              0    m*x_G   Iz   ]
+
 """
 @inline function _mass_rb(rb::RigidBody3DOF{T}) where {T}
     m  = rb.m
@@ -35,7 +31,7 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Return the 3×3 added-mass matrix ``\\mathbf{M}_A`` stored in
+Return the 3×3 added-mass matrix `M_A` stored in
 `HydroParams3DOF`.
 
 The core routines treat `M_A` as a general symmetric 3×3 matrix. When
@@ -48,13 +44,11 @@ Fossen 3-DOF structure.
 """
 $(TYPEDSIGNATURES)
 
-Build the ``3\\times 3`` rigid-body + added-mass inertia matrix in surge–sway–yaw:
+Build the 3×3 rigid-body + added-mass inertia matrix in surge–sway–yaw:
 
-```math
-\\mathbf{M} = \\mathbf{M}_{RB} + \\mathbf{M}_A
-```
+    M = M_RB + M_A
 
-where ``M_{RB}`` is built from `RigidBody3DOF` and ``M_A`` from `HydroParams3DOF`.
+where `M_RB` is built from `RigidBody3DOF` and `M_A` from `HydroParams3DOF`.
 """
 function mass_matrix(params::VesselParams3DOF{T}) where {T<:Real}
     M = _mass_rb(params.rb) + _mass_added(params.hydro)
@@ -70,27 +64,21 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Return the 3×3 linear manoeuvring damping matrix ``\\mathbf{D}_\\text{lin}``.
+Return the 3×3 linear manoeuvring damping matrix `D_lin`.
 
 In the equations of motion the linear damping term appears as
 
-```math
-\\mathbf{D}_\\text{lin} \\, \\boldsymbol{\\nu},
-```
+    D_lin ν,
 
 so `D_lin` is stored with the physical sign. When constructed via
 [`hydroparams_fossen3dof`](@ref) this matrix is
 
-```math
-\\mathbf{D}_\\text{lin} =
--\\begin{bmatrix}
-X_u & X_v & X_r \\\\
-Y_u & Y_v & Y_r \\\\
-N_u & N_v & N_r
-\\end{bmatrix},
-```
+    D_lin =
+        -[ X_u  X_v  X_r
+           Y_u  Y_v  Y_r
+           N_u  N_v  N_r ],
 
-where `X_u, Y_v, \\dots` are Fossen-style hydrodynamic derivatives.
+where `X_u, Y_v, ...` are Fossen-style hydrodynamic derivatives.
 """
 @inline _D_lin(h::HydroParams3DOF{T}) where {T} = h.D_lin
 
@@ -98,8 +86,7 @@ where `X_u, Y_v, \\dots` are Fossen-style hydrodynamic derivatives.
 """
 $(TYPEDSIGNATURES)
 
-Construct the nonlinear (quadratic) damping matrix
-``\\mathbf{D}_\\text{n}(\\boldsymbol{\\nu})`` for the 3-DOF model.
+Construct the nonlinear (quadratic) damping matrix Dₙ(ν) for the 3-DOF model.
 
 This front-end method extracts the quadratic coefficients from
 `HydroParams3DOF` and delegates to the specialised method on
@@ -118,31 +105,19 @@ end
 $(TYPEDSIGNATURES)
 
 Construct the diagonal approximation to the nonlinear damping matrix
-``\\mathbf{D}_\\text{n}(\\boldsymbol{\\nu})`` from Fossen-style
-quadratic derivatives.
+D_n(ν) from Fossen-style quadratic derivatives.
 
 Given
 
-```math
-\\boldsymbol{\\nu} = [u, v, r]^T,
-```
+    ν = [u, v, r]ᵀ,
 
 this method returns
 
-```math
-\\mathbf{D}_\\text{n}(\\boldsymbol{\\nu}) =
--\\operatorname{diag}(
-  X_{uu}\\lvert u\\rvert,\\,
-  Y_{vv}\\lvert v\\rvert,\\,
-  N_{rr}\\lvert r\\rvert).
-```
+    D_n(ν) = -diag(X_uu * |u|, Y_vv * |v|, N_rr * |r|).
 
 The total damping matrix used in the dynamics is then
 
-```math
-\\mathbf{D}(\\boldsymbol{\\nu}) =
-\\mathbf{D}_\\text{lin} + \\mathbf{D}_\\text{n}(\\boldsymbol{\\nu}).
-```
+    D(ν) = D_lin + D_n(ν).
 """
 # Actual 3×3 matrix, based on Fossen-style derivatives in QuadraticDamping3DOF
 @inline function _D_nl(
@@ -162,18 +137,15 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Rigid-body Coriolis/centripetal matrix ``\\mathbf{C}_{RB}(\\boldsymbol{\\nu})``
-for the 3-DOF model.
+Rigid-body Coriolis/centripetal matrix `C_RB(ν)` for the 3-DOF model.
 
 Implements the standard Fossen 3-DOF surface craft expression based on
 the rigid-body parameters `m` and `xG` from [`RigidBody3DOF`](@ref).
 The returned matrix satisfies
 
-```math
-\\boldsymbol{\\nu}^T \\mathbf{C}_{RB}(\\boldsymbol{\\nu}) \\, \\boldsymbol{\\nu} = 0
-```
+    νᵀ C_RB(ν) ν = 0
 
-for all velocities `\\boldsymbol{\\nu}`, so that the rigid-body
+for all velocities ν, so that the rigid-body
 inertial forces do not create or dissipate energy.
 """
 @inline function _coriolis_rb(
@@ -196,30 +168,24 @@ end
 """
 $(TYPEDSIGNATURES)
 
-Added-mass Coriolis/centripetal matrix ``\\mathbf{C}_A(\\boldsymbol{\\nu})``
+Added-mass Coriolis/centripetal matrix `C_A(ν)`
 for the 3-DOF model.
 
 This implementation reconstructs the added-mass derivatives
-``X_{\\dot{u}}, Y_{\\dot{v}}, Y_{\\dot{r}}`` from the stored
+`X_udot, Y_vdot, Y_rdot` from the stored
 added-mass matrix `M_A` in [`HydroParams3DOF`](@ref) assuming the
 standard Fossen 3-DOF structure
 
-```math
-\\mathbf{M}_A =
-\\begin{bmatrix}
-- X_{\\dot{u}} & 0              & 0 \\\\
-0              & - Y_{\\dot{v}} & - Y_{\\dot{r}} \\\\
-0              & - Y_{\\dot{r}} & - N_{\\dot{r}}
-\\end{bmatrix}.
-```
+    M_A =
+        [ -X_udot      0          0
+           0         -Y_vdot   -Y_rdot
+           0         -Y_rdot   -N_rdot ].
 
-The returned matrix `\\mathbf{C}_A(\\boldsymbol{\\nu})` satisfies
+The returned matrix `C_A(ν)` satisfies
 
-```math
-\\boldsymbol{\\nu}^T \\mathbf{C}_A(\\boldsymbol{\\nu}) \\, \\boldsymbol{\\nu} = 0
-```
+    νᵀ C_A(ν) ν = 0
 
-for all velocities `\\boldsymbol{\\nu}`.
+for all velocities ν.
 If `M_A` does not have the above structure the interpretation of the
 entries in `C_A` will no longer match Fossen's added-mass derivatives.
 """

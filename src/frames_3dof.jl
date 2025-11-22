@@ -8,12 +8,9 @@ Rotation matrix from body-fixed to Earth-fixed frame in the horizontal plane.
 
 The mapping is
 
-```math
-\\dot{\\boldsymbol{\\eta}} =
-R(\\psi)\\,\\boldsymbol{\\nu}, \\quad
-\\boldsymbol{\\eta} = [x, y, \\psi]^T,\\;
-\\boldsymbol{\\nu} = [u, v, r]^T.
-```
+    η̇ = R(ψ) ν
+    η = [x, y, ψ]ᵀ
+    ν = [u, v, r]ᵀ.
 """
 rotation_body_to_earth(ψ::T) where {T<:Real} = begin
     c = cos(ψ)
@@ -31,15 +28,14 @@ $(TYPEDSIGNATURES)
 
 Compute the kinematic relation
 
-```math
-\\dot{\\eta} = R(\\psi)\\,\\nu
-```
+    η̇ = R(ψ) ν
+
 for 3-DOF motion in the horizontal plane.
 
-* ``\\eta = [x, y, \\psi]^T`` is the position and yaw angle,
-* ``\\nu = [u, v, r]^T`` is the body-fixed velocity vector.
+* η = [x, y, ψ]ᵀ is the position and yaw angle,
+* ν = [u, v, r]ᵀ is the body-fixed velocity vector.
 
-Returns an `SVector{3}` representing ``\\dot{\\eta}``.
+Returns an `SVector{3}` representing η̇.
 """
 function kinematics(
     eta::SVector{3,S},
