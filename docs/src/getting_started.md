@@ -276,7 +276,7 @@ them to SI units internally:
 ```jldoctest units
 julia> using Unitful
 
-julia> rb = RigidBody3DOF(10_000u"kg", 2.0e6u"kg*m^2", 1.5u"m");
+julia> rb = RigidBody3DOF(10u"t", 2.0e6u"kg*m^2", 1.5u"m");
 
 julia> rb.m
 10000.0
