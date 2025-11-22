@@ -276,13 +276,13 @@ them to SI units internally:
 ```jldoctest units
 julia> using Unitful
 
-julia> rb = RigidBody3DOF(10u"t", 2.0e6u"kg*m^2", 1.5u"m");
+julia> rb = RigidBody3DOF(100u"lb", 1.0e6u"lb*ft^2", 10u"ft");
 
-julia> rb.m
-10000.0
+julia> rb.m # mass is stored as kg internally
+45.359237
 
-julia> rb.xG
-1.5
+julia> rb.xG # position is stored as meters internally
+3.048
 ```
 
 This allows you to work in whatever mass/length units you like at the API
